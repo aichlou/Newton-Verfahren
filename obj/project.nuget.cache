@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "6N1tYbnEDLY=",
+  "success": true,
+  "projectFilePath": "/home/louis/Projekts/Newton Verfahren/Newton Verfahren.csproj",
+  "expectedPackageFiles": [
+    "/home/louis/.nuget/packages/microsoft.aspnetcore.app.ref/10.0.3/microsoft.aspnetcore.app.ref.10.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,14 @@
+/home/louis/Projekts/Newton Verfahren/bin/Debug/net10.0/Newton Verfahren
+/home/louis/Projekts/Newton Verfahren/bin/Debug/net10.0/Newton Verfahren.deps.json
+/home/louis/Projekts/Newton Verfahren/bin/Debug/net10.0/Newton Verfahren.runtimeconfig.json
+/home/louis/Projekts/Newton Verfahren/bin/Debug/net10.0/Newton Verfahren.dll
+/home/louis/Projekts/Newton Verfahren/bin/Debug/net10.0/Newton Verfahren.pdb
+/home/louis/Projekts/Newton Verfahren/obj/Debug/net10.0/Newton Verfahren.GeneratedMSBuildEditorConfig.editorconfig
+/home/louis/Projekts/Newton Verfahren/obj/Debug/net10.0/Newton Verfahren.AssemblyInfoInputs.cache
+/home/louis/Projekts/Newton Verfahren/obj/Debug/net10.0/Newton Verfahren.AssemblyInfo.cs
+/home/louis/Projekts/Newton Verfahren/obj/Debug/net10.0/Newton Verfahren.csproj.CoreCompileInputs.cache
+/home/louis/Projekts/Newton Verfahren/obj/Debug/net10.0/Newton Verfahren.dll
+/home/louis/Projekts/Newton Verfahren/obj/Debug/net10.0/refint/Newton Verfahren.dll
+/home/louis/Projekts/Newton Verfahren/obj/Debug/net10.0/Newton Verfahren.pdb
+/home/louis/Projekts/Newton Verfahren/obj/Debug/net10.0/Newton Verfahren.genruntimeconfig.cache
+/home/louis/Projekts/Newton Verfahren/obj/Debug/net10.0/ref/Newton Verfahren.dll
