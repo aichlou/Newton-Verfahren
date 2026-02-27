@@ -4,10 +4,11 @@ bool Error = false;
 do {
     Error = false;
     Console.WriteLine("Newton Verfahren aber von Louis");
-    Console.Write("Funktion: "); 
+    Console.Write("Funktion: f(x)="); 
     char[] function = (Console.ReadLine() ?? "").ToCharArray();
     List<Element> Elemente = new List<Element> {new Element("number", "0")};
     string? ErrorMessage = null;
+    char variable = 'x';
     foreach (char item in function)
     {
         var lastElement = Elemente[Elemente.Count() - 1];
@@ -87,7 +88,7 @@ do {
             }
             else
             {
-                ErrorMessage = "Sie dürfen nicht zwei binäre Operatoren hintereinanderhängen";
+                ErrorMessage += "Sie dürfen nicht zwei binäre Operatoren hintereinanderhängen \n";
                 break;
             }
         }
@@ -105,6 +106,14 @@ do {
             Elemente.Add(new Element("bracket", "close"));
             continue;
         }
+        else if (item == variable)
+        {
+            Elemente.Add(new Element("variable", variable.ToString()));
+        }
+        else
+        {
+            ErrorMessage += $"Verbotene Zeichen {item} \n";
+        }
     }
     if (ErrorMessage != null)
     {
@@ -114,6 +123,44 @@ do {
     }
     else
     {
+        Console.WriteLine();
+        bool StartwertError = false;
+        do {
+            StartwertError = false;
+            Console.WriteLine("Mit welchem Startwert möchten Sie starten?");
+            string Eingabe = Console.ReadLine() ?? "";
+            if (double.TryParse(Eingabe, out double StartWert)) {
+                bool WiederholungsError = false;
+                do
+                {
+                    WiederholungsError = false;
+                    Console.WriteLine("Wie viele Wiederholungen möchten Sie machen?");
+                    string WiederholungenString = Console.ReadLine() ?? "";
+                    if(int.TryParse(WiederholungenString, out int Wiederholungen) && Wiederholungen > 0)
+                    {
+                        double Result = Run(Elemente.ToArray(), StartWert);
+
+                    }
+                    else
+                    {
+                        Console.WriteLine("Bitte geben sie eine gültige Zahl ein");
+                        WiederholungsError = true;
+                    }
+
+                } while (WiederholungsError);
+            }
+            else
+            {
+                Console.WriteLine("Bitte geben sie eine Zahl ein");
+                StartwertError = true;
+            }
+        } while (StartwertError);
+
+
+
+
+
+
         Console.WriteLine("Möchtest du es nocheinmal versuchen?");
         string Response = Console.ReadLine() ?? "";
         if (Response.ToLower() == "y" || Response.ToLower() == "j" ||Response.ToLower() == "") Error = true;
@@ -126,9 +173,6 @@ do {
     Console.WriteLine();
 } while (Error);
 
-
-
-
 bool IsBiOperation(char c)
 {
     if (c == '+'  || c == '-' || c == '*' || c == '/' || c == '^')
@@ -137,6 +181,19 @@ bool IsBiOperation(char c)
     }
     return false;
 }
+
+double Run(Element[] function, double value) {
+    for(int i = 0; i > function.Count(); i++)
+    {
+        if (function[i].GetDatatype() == "variable")
+        {
+            function[i] = new Element("double", value.ToString());
+        }
+    }
+    return 0;
+}
+
+
 
 
 class Element
