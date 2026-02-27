@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Newton Verfahren")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0d9b1d38dfa84b2338e091eaa478a964229ab6b9")]
 [assembly: System.Reflection.AssemblyProductAttribute("Newton Verfahren")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Newton Verfahren")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
