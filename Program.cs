@@ -14,15 +14,19 @@ do {
     foreach (char item in function)
     {
         var lastElement = Elemente[Elemente.Count() - 1];
+
+        Console.WriteLine($"{lastElement.GetDatatype()}, {lastElement.GetValue()}");
+        Console.WriteLine(string.Join("", Elemente.ConvertAll(e => e.GetValue())));
+
         if (int.TryParse(item.ToString(), out int number))
         {
             switch(lastElement.GetDatatype())
             {
                 case "number":
-                    lastElement.SetValue((int.Parse(lastElement.GetValue()) * 10 + int.Parse(item.ToString())).ToString());
+                    lastElement.SetValue((lastElement.GetValue() + item.ToString()).ToString());
                     break;
-                case "double":
-                    lastElement.SetValue((Double.Parse(lastElement.GetValue()) + 0.1 * int.Parse(item.ToString())).ToString() ?? throw new Exception("Bidde geben sie was ein"));
+                case "decimal":
+                    lastElement.SetValue((decimal.Parse(lastElement.GetValue()) + 0.1 * decimal.Parse(item.ToString())).ToString());
                     break;
                 case "bracket":
                     if (lastElement.GetValue() == ")")
@@ -61,7 +65,7 @@ do {
                             case "number":
                                 Elemente.Add(new Element("number", item.ToString()));
                                 break;
-                            case "double":
+                            case "decimal":
                                 Elemente.Add(new Element("number", item.ToString()));
                                 break;
                             default:
@@ -82,7 +86,7 @@ do {
         else if (item == '.') {
             int Zwischenspeicher = int.Parse(lastElement.GetValue());
             lastElement.SetValue("0");
-            lastElement.SetDatatype("double");
+            lastElement.SetDatatype("decimal");
             lastElement.SetValue(Zwischenspeicher.ToString());
         }
         else if (IsBiOperation(item))
@@ -102,7 +106,7 @@ do {
         }
         else if (item == '(')
         {
-            Elemente.Add(new Element("bracket", "("));
+            Elemente.Add(new Element("bracket", "(")); 0.1 * decimal.Parse(item.ToString())
             continue;
         }
         else if (item == ')')
@@ -119,6 +123,12 @@ do {
             ErrorMessage += $"Verbotene Zeichen {item} \n";
         }
     }
+    var banane = Elemente[Elemente.Count() - 1];
+
+    Console.WriteLine($"{banane.GetDatatype()}, {banane.GetValue()}");
+    Console.WriteLine(string.Join("", Elemente.ConvertAll(e => e.GetValue())));
+
+
     if (ErrorMessage != null)
     {
         Console.WriteLine(ErrorMessage);
@@ -133,7 +143,7 @@ do {
             StartwertError = false;
             Console.WriteLine("Mit welchem Startwert möchten Sie starten?");
             string Eingabe = Console.ReadLine() ?? "";
-            if (double.TryParse(Eingabe, out double StartWert)) {
+            if (decimal.TryParse(Eingabe, out decimal StartWert)) {
                 bool WiederholungsError = false;
                 do
                 {
@@ -147,7 +157,7 @@ do {
                             Console.WriteLine($"{item.GetDatatype()}, {item.GetValue()}");
                         }
                         Console.WriteLine(string.Join("", Elemente.ConvertAll(e => e.GetValue())));
-                        double Result = Run(Elemente.ToArray(), StartWert);
+                        decimal Result = Run(Elemente.ToArray(), StartWert);
                         Console.WriteLine($"The Result is {Result}");
 
                     }
@@ -192,17 +202,17 @@ bool IsBiOperation(char c)
     return false;
 }
 
-double Run(Element[] function, double value) {
+decimal Run(Element[] function, decimal value) {
     for(int i = 0; i > function.Count(); i++)
     {
         Console.WriteLine(function[i].GetValue());
         if (function[i].GetDatatype() == "variable")
         {
-            function[i] = new Element("double", value.ToString()); 
+            function[i] = new Element("decimal", value.ToString()); 
         }
         
     }
-    return double.Parse((Calculate(function.ToList()).FirstOrDefault() ?? throw new Exception("Da ist irgendwas gewaltig schiefgeloffen")).GetValue());
+    return decimal.Parse((Calculate(function.ToList()).FirstOrDefault() ?? throw new Exception("Da ist irgendwas gewaltig schiefgeloffen")).GetValue());
 }
 
 Element[] Calculate(List<Element> term)
@@ -217,8 +227,8 @@ Element[] Calculate(List<Element> term)
             if (element.GetValue() == ")") CloseBrackets ++;
         }
     }
-    if (OpenBrackets - CloseBrackets > 0) throw new Exception($" Es  gibt {OpenBrackets - CloseBrackets} Klammern Auf zu wenig");
-    else if (CloseBrackets - OpenBrackets > 0) throw new Exception($"Es gibt {CloseBrackets - OpenBrackets} Klammern Zu zu wenig");
+    if (OpenBrackets - CloseBrackets > 0) throw new Exception($" Es  gibt {OpenBrackets - CloseBrackets} Klammer(n) Auf zu wenig");
+    else if (CloseBrackets - OpenBrackets > 0) throw new Exception($"Es gibt {CloseBrackets - OpenBrackets} Klammer(n) Zu zu wenig");
      
     while (IsOperation.Brackets(term.ToArray()).OpenBrackets > 0) {
         int indexOpen = term 
@@ -351,7 +361,7 @@ class IsOperation()
 class Element
 {
     private int? Intvalue;
-    private double? Doublevalue;
+    private decimal? decimalvalue;
     private char? Biop;
     private string? Bracket;
     private string? Variable;
@@ -363,8 +373,8 @@ class Element
             case "number":
                 Intvalue = int.Parse(value);
                 break;
-            case "double":
-                Doublevalue = double.Parse(value);
+            case "decimal":
+                decimalvalue = decimal.Parse(value);
                 break;
             case "biop":
                 Biop = value.ToCharArray()[0];
@@ -385,7 +395,7 @@ class Element
     }
     public void SetDatatype(string datatype)
     {
-        if (datatype == "number" || datatype == "double" || datatype == "biop" || datatype == "bracket" || datatype == "variable")
+        if (datatype == "number" || datatype == "decimal" || datatype == "biop" || datatype == "bracket" || datatype == "variable")
         {
             this.datatype = datatype;
             return;
@@ -401,8 +411,8 @@ class Element
         {
             case "number":
                 return Intvalue.ToString() ?? throw new Exception("Intvalue ist leer");
-            case "double":
-                return Doublevalue.ToString() ?? throw new Exception("Doublevalue ist leer");
+            case "decimal":
+                return decimalvalue.ToString() ?? throw new Exception("decimalvalue ist leer");
             case "biop":
                 return Biop.ToString() ?? throw new Exception("Operator ist leer");
             case "bracket":
@@ -420,8 +430,8 @@ class Element
             case "number":
                 this.Intvalue = int.Parse(value);
                 break;
-            case "double":
-                this.Doublevalue = Double.Parse(value);
+            case "decimal":
+                this.decimalvalue = decimal.Parse(value);
                 break;
             case "biop":
                 this.Biop = value.ToCharArray()[0];
