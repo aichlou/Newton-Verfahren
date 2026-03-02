@@ -23,7 +23,7 @@ do {
                     lastElement.SetValue((Double.Parse(lastElement.GetValue()) + 0.1 * int.Parse(item.ToString())).ToString() ?? throw new Exception("Bidde geben sie was ein"));
                     break;
                 case "bracket":
-                    if (lastElement.GetValue() == "close")
+                    if (lastElement.GetValue() == ")")
                     {
                         Elemente.Add(new Element("biop", "*"));
                         Elemente.Add(new Element("number", item.ToString()));
@@ -43,11 +43,11 @@ do {
                                 Elemente.Add(new Element("number", (- number).ToString()));
                                 break;
                             case "bracket":
-                                if (Elemente[Elemente.Count() - 2].GetValue() == "open")
+                                if (Elemente[Elemente.Count() - 2].GetValue() == "(")
                                 {
                                     Elemente[Elemente.Count() - 1] = new Element("number", (-number).ToString());
                                 }
-                                else if (Elemente[Elemente.Count() - 2].GetValue() == "close") {
+                                else if (Elemente[Elemente.Count() - 2].GetValue() == ")") {
                                     Elemente[Elemente.Count() -1] = new Element("biop", "+");
                                     Elemente.Add(new Element("number", (-number).ToString()));
                                 }
@@ -57,8 +57,10 @@ do {
                                 Elemente[Elemente.Count() - 1] = new Element("number", (-number).ToString());
                                 break;
                             case "number":
+                                Elemente.Add(new Element("number", item.ToString()));
                                 break;
                             case "double":
+                                Elemente.Add(new Element("number", item.ToString()));
                                 break;
                             default:
                                 throw new Exception($"Datentyp {Elemente[Elemente.Count() -2].GetDatatype()} noch nicht implementiert...");
@@ -98,12 +100,12 @@ do {
         }
         else if (item == '(')
         {
-            Elemente.Add(new Element("bracket", "open"));
+            Elemente.Add(new Element("bracket", "("));
             continue;
         }
         else if (item == ')')
         {
-            Elemente.Add(new Element("bracket", "close"));
+            Elemente.Add(new Element("bracket", ")"));
             continue;
         }
         else if (item == variable)
@@ -138,6 +140,11 @@ do {
                     string WiederholungenString = Console.ReadLine() ?? "";
                     if(int.TryParse(WiederholungenString, out int Wiederholungen) && Wiederholungen > 0)
                     {
+                        foreach(Element item in Elemente)
+                        {
+                            Console.WriteLine($"{item.GetDatatype()}, {item.GetValue()}");
+                        }
+                        Console.WriteLine(string.Join("", Elemente.ConvertAll(e => e.GetValue())));
                         double Result = Run(Elemente.ToArray(), StartWert);
 
                     }
@@ -185,15 +192,59 @@ bool IsBiOperation(char c)
 double Run(Element[] function, double value) {
     for(int i = 0; i > function.Count(); i++)
     {
+        Console.WriteLine(function[i].GetValue());
         if (function[i].GetDatatype() == "variable")
         {
             function[i] = new Element("double", value.ToString());
         }
+        
     }
-    return 0;
+    return Calculate(function.ToList());
 }
 
+double Calculate(List<Element> term)
+{
+    int OpenBrackets = 0;
+    int CloseBrackets = 0;
+    foreach (Element element in term)
+    {
+        if (element.GetDatatype() == "bracket")
+        {
+            if (element.GetValue() == "(") OpenBrackets ++;
+            if (element.GetValue() == ")") CloseBrackets ++;
+        }
+    }
+    if (OpenBrackets - CloseBrackets > 0) throw new Exception($" Es  gibt {OpenBrackets - CloseBrackets} Klammern Auf zu wenig");
+    else if (CloseBrackets - OpenBrackets > 0) throw new Exception($"Es gibt {CloseBrackets - OpenBrackets} Klammern Zu zu wenig");
+     
+    if (OpenBrackets > 0) {
+        int indexOpen = term 
+            .Select((value, i) => new {value, i})
+            .Where(x => x.value.GetValue() == "(")
+            .Skip(OpenBrackets - 1)
+            .Select(x => x.i)
+            .FirstOrDefault(-1);
+        if (indexOpen == -1) throw new Exception("Ja ich hab gekackt und irgendein Mumpitz gekotet (Close)");
+        
+        int indexClose = term
+            .Select((value, i) => new {value, i})
+            .Skip(indexOpen)
+            .Where(x => x.value.GetValue() == ")")
+            .Select(x => x.i)
+            .FirstOrDefault(-1);
+        
+        if (indexClose == -1) throw new Exception("Ja ich hab gekackt und irgendein Mumpitz gekotet (Close)");
 
+        Element[] BracketTerm = term
+            .Skip(indexOpen)
+            .Reverse()
+            .Skip(indexClose)
+            .Reverse()
+            .ToArray();
+        
+    }
+    return 6;
+}
 
 
 class Element
@@ -202,6 +253,7 @@ class Element
     private double? Doublevalue;
     private char? Biop;
     private string? Bracket;
+    private string? Variable;
     private string datatype;
     public Element(string datatype, string value) {
         this.datatype = datatype;
@@ -211,13 +263,16 @@ class Element
                 Intvalue = int.Parse(value);
                 break;
             case "double":
-                Intvalue = int.Parse(value);
+                Doublevalue = double.Parse(value);
                 break;
             case "biop":
                 Biop = value.ToCharArray()[0];
                 break;
             case "bracket":
                 Bracket = value; 
+                break;
+            case "variable":
+                Variable = value;
                 break;
             default:
                 break;
@@ -229,7 +284,7 @@ class Element
     }
     public void SetDatatype(string datatype)
     {
-        if (datatype == "number" || datatype == "double" || datatype == "biop" || datatype == "bracket")
+        if (datatype == "number" || datatype == "double" || datatype == "biop" || datatype == "bracket" || datatype == "variable")
         {
             this.datatype = datatype;
             return;
@@ -251,6 +306,8 @@ class Element
                 return Biop.ToString() ?? throw new Exception("Operator ist leer");
             case "bracket":
                 return Bracket ?? throw new Exception("Es existiert keine Klammer");
+            case "variable":
+                return Variable ?? throw new Exception("Es gibt keine Variable");
             default:
                 throw new Exception("Element hat kein annerkannten Datentyp");
         }
@@ -270,6 +327,9 @@ class Element
                 break;
             case "bracket":
                 this.Bracket = value;
+                break;
+            case "variable":
+                this.Variable = value;
                 break;
             default:
                 Console.WriteLine("Bananig");
