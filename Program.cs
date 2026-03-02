@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.ComponentModel;
+using System.Net;
 using Microsoft.VisualBasic;
 bool Error = false;
 do {
@@ -221,27 +222,43 @@ double Calculate(List<Element> term)
         int indexOpen = term 
             .Select((value, i) => new {value, i})
             .Where(x => x.value.GetValue() == "(")
-            .Skip(OpenBrackets - 1)
             .Select(x => x.i)
             .FirstOrDefault(-1);
         if (indexOpen == -1) throw new Exception("Ja ich hab gekackt und irgendein Mumpitz gekotet (Close)");
-        
-        int indexClose = term
+        int counter = 0;
+/*        int indexClose = term
             .Select((value, i) => new {value, i})
-            .Skip(indexOpen)
-            .Where(x => x.value.GetValue() == ")")
+            .Skip(indexOpen) //Ist eigendlich irrelevant
+            .Where(x => !(x.value.GetValue() == "(" && counter++ > 0))
+            .Where(x => x.value.GetValue() == ")" && counter-- > 0)
             .Select(x => x.i)
-            .FirstOrDefault(-1);
+            .FirstOrDefault(-1); */
+        int indexClose = -1;
+        for (int i = indexOpen; i < term.Count; i++)
+        {
+            if (term[i].GetValue() == "(")
+                counter++;
+
+            if (term[i].GetValue() == ")")
+                counter--;
+
+            if (counter == 0)
+            {
+                indexClose = i;
+                break;
+            }
+        }
         
         if (indexClose == -1) throw new Exception("Ja ich hab gekackt und irgendein Mumpitz gekotet (Close)");
 
-        Element[] BracketTerm = term
+        List<Element> BracketTerm = term
             .Skip(indexOpen)
             .Reverse()
             .Skip(indexClose)
             .Reverse()
-            .ToArray();
+            .ToList();
         
+        double banane = Calculate(BracketTerm);
     }
     return 6;
 }
