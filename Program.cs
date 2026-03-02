@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Drawing;
 using System.Net;
 using Microsoft.VisualBasic;
 bool Error = false;
@@ -147,6 +148,7 @@ do {
                         }
                         Console.WriteLine(string.Join("", Elemente.ConvertAll(e => e.GetValue())));
                         double Result = Run(Elemente.ToArray(), StartWert);
+                        Console.WriteLine($"The Result is {Result}");
 
                     }
                     else
@@ -196,14 +198,14 @@ double Run(Element[] function, double value) {
         Console.WriteLine(function[i].GetValue());
         if (function[i].GetDatatype() == "variable")
         {
-            function[i] = new Element("double", value.ToString());
+            function[i] = new Element("double", value.ToString()); 
         }
         
     }
-    return Calculate(function.ToList());
+    return double.Parse((Calculate(function.ToList()).FirstOrDefault() ?? throw new Exception("Da ist irgendwas gewaltig schiefgeloffen")).GetValue());
 }
 
-double Calculate(List<Element> term)
+Element[] Calculate(List<Element> term)
 {
     int OpenBrackets = 0;
     int CloseBrackets = 0;
@@ -218,7 +220,7 @@ double Calculate(List<Element> term)
     if (OpenBrackets - CloseBrackets > 0) throw new Exception($" Es  gibt {OpenBrackets - CloseBrackets} Klammern Auf zu wenig");
     else if (CloseBrackets - OpenBrackets > 0) throw new Exception($"Es gibt {CloseBrackets - OpenBrackets} Klammern Zu zu wenig");
      
-    if (OpenBrackets > 0) {
+    while (IsOperation.Brackets(term.ToArray()).OpenBrackets > 0) {
         int indexOpen = term 
             .Select((value, i) => new {value, i})
             .Where(x => x.value.GetValue() == "(")
@@ -226,7 +228,7 @@ double Calculate(List<Element> term)
             .FirstOrDefault(-1);
         if (indexOpen == -1) throw new Exception("Ja ich hab gekackt und irgendein Mumpitz gekotet (Close)");
         int counter = 0;
-/*        int indexClose = term
+            /*int indexClose = term
             .Select((value, i) => new {value, i})
             .Skip(indexOpen) //Ist eigendlich irrelevant
             .Where(x => !(x.value.GetValue() == "(" && counter++ > 0))
@@ -258,9 +260,91 @@ double Calculate(List<Element> term)
             .Reverse()
             .ToList();
         
-        double banane = Calculate(BracketTerm);
+        term.RemoveRange(indexOpen, indexClose - indexOpen);
+        term.InsertRange(indexOpen, Calculate(BracketTerm));
     }
-    return 6;
+
+    while (true)
+    {
+        int PowTermInt = term
+            .Select((value, i) => new {value, i})
+            .Where(x => x.value.GetValue() == "^")
+            .Select(x => x.i)
+            .FirstOrDefault(-1);
+        if (PowTermInt == -1) break;        
+        
+        Element[] PointTerm = {term[PowTermInt -1], term[PowTermInt], term[PowTermInt + 1]};
+        term.RemoveRange(PowTermInt - 1, 3);
+        term.InsertRange(PowTermInt - 1, Calculate(PointTerm.ToList()));
+    }
+
+    while (true)
+    {
+        int DotTermInt = term
+            .Select((value, i) => new {value, i})
+            .Where(x => x.value.GetValue() == "/" || x.value.GetValue() == "*")
+            .Select(x => x.i)
+            .FirstOrDefault(-1);
+
+        if (DotTermInt == -1) break;        
+        
+        Element[] PointTerm = {term[DotTermInt -1], term[DotTermInt], term[DotTermInt + 1]};
+        term.RemoveRange(DotTermInt - 1, 3);
+        term.InsertRange(DotTermInt - 1, Calculate(PointTerm.ToList()));
+    }
+
+    while(true)
+    {
+        int DashTermInt = term
+            .Select((value, i) => new {value, i})
+            .Where(x => x.value.GetValue() == "+" || x.value.GetValue() == "-")
+            .Select(x => x.i)
+            .FirstOrDefault(-1);
+         
+         if (DashTermInt == -1) break;
+
+        Element[] DashTerm = {term[DashTermInt -1], term[DashTermInt], term[DashTermInt + 1]};
+        term.RemoveRange(DashTermInt - 1, 3);
+        term.InsertRange(DashTermInt - 1,Calculate(DashTerm.ToList()));
+    }
+    return term.ToArray();
+}
+
+class IsOperation()
+{
+    public static (int OpenBrackets, int CloseBrackets) Brackets(Element[] term)
+    {
+        int OpenBrackets = 0;
+        int CloseBrackets = 0;
+        foreach (Element element in term)
+        {
+            if (element.GetDatatype() == "bracket")
+            {
+                if (element.GetValue() == "(") OpenBrackets ++;
+                if (element.GetValue() == ")") CloseBrackets ++;
+            }
+        }
+        if (OpenBrackets - CloseBrackets > 0) throw new Exception($" Es  gibt {OpenBrackets - CloseBrackets} Klammern Auf zu wenig");
+        else if (CloseBrackets - OpenBrackets > 0) throw new Exception($"Es gibt {CloseBrackets - OpenBrackets} Klammern Zu zu wenig");
+        return (OpenBrackets, CloseBrackets);
+    }
+
+    /*public static int[] Muliplication(Element[] term) 
+    {
+        return term
+            .Select((value, i) => new {value, i})
+            .Where(x => x.value.GetValue() == "*")
+            .Select(x => x.i)
+            .ToArray();
+    }
+    public static int[] Division(Element[] term)
+    {
+        return term
+            .Select((value, i) => new {value, i})
+            .Where(x => x.value.GetValue() == "/")
+            .Select(x => x.i)
+            .ToArray();
+    }*/
 }
 
 
