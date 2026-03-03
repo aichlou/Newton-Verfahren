@@ -1,8 +1,12 @@
 ﻿using System.ComponentModel;
 using System.Drawing;
 using System.Net;
+using System.Runtime.CompilerServices;
 using Microsoft.VisualBasic;
 bool Error = false;
+
+//Todo: Konstanten adden (e & pi z.B.)
+
 do {
     Error = false;
     Console.WriteLine("Newton Verfahren aber von Louis");
@@ -15,9 +19,6 @@ do {
     {
         var lastElement = Elemente[Elemente.Count() - 1];
 
-        Console.WriteLine($"{lastElement.GetDatatype()}, {lastElement.GetValue()}");
-        Console.WriteLine(string.Join("", Elemente.ConvertAll(e => e.GetValue())));
-
         if (int.TryParse(item.ToString(), out int number))
         {
             switch(lastElement.GetDatatype())
@@ -25,8 +26,36 @@ do {
                 case "number":
                     lastElement.SetValue((lastElement.GetValue() + item.ToString()).ToString());
                     break;
-                case "decimal":
-                    lastElement.SetValue((decimal.Parse(lastElement.GetValue()) + 0.1 * decimal.Parse(item.ToString())).ToString());
+                case "float":
+                    /*Console.Write($"{float.Parse(lastElement.GetValue())} + (0.1 * {float.Parse(item.ToString())})");
+                    lastElement.SetValue((float.Parse(lastElement.GetValue()) + (0.1 * float.Parse(item.ToString()))).ToString());
+                    Console.WriteLine($" = {lastElement.GetValue()}"); */
+                    /*if (!lastElement.GetValue().Contains('.'))
+                    {
+                        lastElement.SetValue(lastElement.GetValue() + ".0");
+                    } */
+
+                    int decimaldigits = lastElement.GetValue()
+                        .ToCharArray()
+                        .SkipWhile(x => x != '.')
+                        .Skip(1)
+                        .Count();
+                    //Console.WriteLine($"Es hat {decimaldigits} Nachkommastelle(n)");
+                    decimal newdigit = decimal.Parse(item.ToString());
+                    //Console.WriteLine($"Das neue Zeichen ist {newdigit}");
+                    decimal divisor = decimal.One;
+                    for (int i = 0; i < decimaldigits + 1; i++)
+                        divisor *= 10m;
+                    newdigit /= divisor;
+                    //Console.WriteLine($"Das neue Zeichen ist ausgerechnet {newdigit}");
+                    bool isNegative = (float.Parse(lastElement.GetValue()) < 0);
+                    if (isNegative) lastElement.SetValue((- float.Parse(lastElement.GetValue())).ToString());
+                    lastElement.SetValue((float.Parse(lastElement.GetValue()) + (float)newdigit).ToString());
+                    if (isNegative) lastElement.SetValue((- float.Parse(lastElement.GetValue())).ToString());
+                    decimal result = decimal.Parse(lastElement.GetValue());
+                    result = Math.Round(result, decimaldigits + 2);
+                    lastElement.SetValue(result.ToString());
+                    //Console.WriteLine($"Das Letzte Element ist jetzt {lastElement.GetValue()}");
                     break;
                 case "bracket":
                     if (lastElement.GetValue() == ")")
@@ -65,7 +94,7 @@ do {
                             case "number":
                                 Elemente.Add(new Element("number", item.ToString()));
                                 break;
-                            case "decimal":
+                            case "float":
                                 Elemente.Add(new Element("number", item.ToString()));
                                 break;
                             default:
@@ -84,10 +113,16 @@ do {
             continue;
         }
         else if (item == '.') {
-            int Zwischenspeicher = int.Parse(lastElement.GetValue());
+            string Zwischenspeicher = lastElement.GetValue();
+            if (lastElement.GetDatatype().Trim() != "number") {
+                ErrorMessage = $"Element vor dem Punkt ist keine Zahl, sondern ein  {lastElement.GetDatatype()}\n"; 
+                break; 
+            }
             lastElement.SetValue("0");
-            lastElement.SetDatatype("decimal");
-            lastElement.SetValue(Zwischenspeicher.ToString());
+            lastElement.SetDatatype("float");
+            lastElement.SetValue(Zwischenspeicher);
+            Elemente[Elemente.Count() - 1] = lastElement;
+            //Console.WriteLine($"Das Element vor dem Punkt ist jetzt {Zwischenspeicher}");
         }
         else if (IsBiOperation(item))
         {
@@ -106,13 +141,17 @@ do {
         }
         else if (item == '(')
         {
-            Elemente.Add(new Element("bracket", "(")); 0.1 * decimal.Parse(item.ToString())
+            Elemente.Add(new Element("bracket", "("));
             continue;
         }
         else if (item == ')')
         {
             Elemente.Add(new Element("bracket", ")"));
             continue;
+        }
+        else if (IsConst(item) != 0)
+        {
+            Elemente.Add(new Element("float", IsConst(item).ToString()));
         }
         else if (item == variable)
         {
@@ -123,9 +162,7 @@ do {
             ErrorMessage += $"Verbotene Zeichen {item} \n";
         }
     }
-    var banane = Elemente[Elemente.Count() - 1];
 
-    Console.WriteLine($"{banane.GetDatatype()}, {banane.GetValue()}");
     Console.WriteLine(string.Join("", Elemente.ConvertAll(e => e.GetValue())));
 
 
@@ -143,7 +180,7 @@ do {
             StartwertError = false;
             Console.WriteLine("Mit welchem Startwert möchten Sie starten?");
             string Eingabe = Console.ReadLine() ?? "";
-            if (decimal.TryParse(Eingabe, out decimal StartWert)) {
+            if (float.TryParse(Eingabe, out float StartWert)) {
                 bool WiederholungsError = false;
                 do
                 {
@@ -157,7 +194,7 @@ do {
                             Console.WriteLine($"{item.GetDatatype()}, {item.GetValue()}");
                         }
                         Console.WriteLine(string.Join("", Elemente.ConvertAll(e => e.GetValue())));
-                        decimal Result = Run(Elemente.ToArray(), StartWert);
+                        float Result = Run(Elemente.ToArray(), StartWert);
                         Console.WriteLine($"The Result is {Result}");
 
                     }
@@ -202,17 +239,30 @@ bool IsBiOperation(char c)
     return false;
 }
 
-decimal Run(Element[] function, decimal value) {
+float IsConst(char constant)
+{
+    switch(constant)
+    {
+        case 'p':
+            return (float)3.14159;
+        case 'e':
+            return (float)2.71828;
+        default:
+            return (float)0;
+    }
+}
+
+float Run(Element[] function, float value) {
     for(int i = 0; i > function.Count(); i++)
     {
         Console.WriteLine(function[i].GetValue());
         if (function[i].GetDatatype() == "variable")
         {
-            function[i] = new Element("decimal", value.ToString()); 
+            function[i] = new Element("float", value.ToString()); 
         }
         
     }
-    return decimal.Parse((Calculate(function.ToList()).FirstOrDefault() ?? throw new Exception("Da ist irgendwas gewaltig schiefgeloffen")).GetValue());
+    return float.Parse((Calculate(function.ToList()).FirstOrDefault() ?? throw new Exception("Da ist irgendwas gewaltig schiefgeloffen")).GetValue());
 }
 
 Element[] Calculate(List<Element> term)
@@ -361,7 +411,7 @@ class IsOperation()
 class Element
 {
     private int? Intvalue;
-    private decimal? decimalvalue;
+    private float? floatvalue;
     private char? Biop;
     private string? Bracket;
     private string? Variable;
@@ -373,8 +423,8 @@ class Element
             case "number":
                 Intvalue = int.Parse(value);
                 break;
-            case "decimal":
-                decimalvalue = decimal.Parse(value);
+            case "float":
+                floatvalue = float.Parse(value);
                 break;
             case "biop":
                 Biop = value.ToCharArray()[0];
@@ -395,7 +445,7 @@ class Element
     }
     public void SetDatatype(string datatype)
     {
-        if (datatype == "number" || datatype == "decimal" || datatype == "biop" || datatype == "bracket" || datatype == "variable")
+        if (datatype == "number" || datatype == "float" || datatype == "biop" || datatype == "bracket" || datatype == "variable")
         {
             this.datatype = datatype;
             return;
@@ -411,8 +461,8 @@ class Element
         {
             case "number":
                 return Intvalue.ToString() ?? throw new Exception("Intvalue ist leer");
-            case "decimal":
-                return decimalvalue.ToString() ?? throw new Exception("decimalvalue ist leer");
+            case "float":
+                return floatvalue.ToString() ?? throw new Exception("floatvalue ist leer");
             case "biop":
                 return Biop.ToString() ?? throw new Exception("Operator ist leer");
             case "bracket":
@@ -430,8 +480,8 @@ class Element
             case "number":
                 this.Intvalue = int.Parse(value);
                 break;
-            case "decimal":
-                this.decimalvalue = decimal.Parse(value);
+            case "float":
+                this.floatvalue = float.Parse(value);
                 break;
             case "biop":
                 this.Biop = value.ToCharArray()[0];
