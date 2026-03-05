@@ -267,34 +267,15 @@ float Run(Element[] function, float value) {
 
 Element[] Calculate(List<Element> term)
 {
-    int OpenBrackets = 0;
-    int CloseBrackets = 0;
-    foreach (Element element in term)
-    {
-        if (element.GetDatatype() == "bracket")
-        {
-            if (element.GetValue() == "(") OpenBrackets ++;
-            if (element.GetValue() == ")") CloseBrackets ++;
-        }
-    }
-    if (OpenBrackets - CloseBrackets > 0) throw new Exception($" Es  gibt {OpenBrackets - CloseBrackets} Klammer(n) Auf zu wenig");
-    else if (CloseBrackets - OpenBrackets > 0) throw new Exception($"Es gibt {CloseBrackets - OpenBrackets} Klammer(n) Zu zu wenig");
      
-    while (IsOperation.Brackets(term.ToArray()).OpenBrackets > 0) {
+    while (term.Any(e => e.GetValue() == "(")) {
         int indexOpen = term 
             .Select((value, i) => new {value, i})
             .Where(x => x.value.GetValue() == "(")
             .Select(x => x.i)
             .FirstOrDefault(-1);
-        if (indexOpen == -1) throw new Exception("Ja ich hab gekackt und irgendein Mumpitz gekotet (Close)");
+        if (indexOpen == -1) throw new InvalidOperationException($"Keine öffnende Klammer gefunden (Index: {indexOpen})");
         int counter = 0;
-            /*int indexClose = term
-            .Select((value, i) => new {value, i})
-            .Skip(indexOpen) //Ist eigendlich irrelevant
-            .Where(x => !(x.value.GetValue() == "(" && counter++ > 0))
-            .Where(x => x.value.GetValue() == ")" && counter-- > 0)
-            .Select(x => x.i)
-            .FirstOrDefault(-1); */
         int indexClose = -1;
         for (int i = indexOpen; i < term.Count; i++)
         {
@@ -311,16 +292,14 @@ Element[] Calculate(List<Element> term)
             }
         }
         
-        if (indexClose == -1) throw new Exception("Ja ich hab gekackt und irgendein Mumpitz gekotet (Close)");
+        if (indexClose == -1) throw new InvalidOperationException($"Keine öffnende Klammer gefunden (Index: {indexClose})");
 
         List<Element> BracketTerm = term
             .Skip(indexOpen)
-            .Reverse()
-            .Skip(indexClose)
-            .Reverse()
+            .Take(term.Count() - indexClose + 1)
             .ToList();
         
-        term.RemoveRange(indexOpen, indexClose - indexOpen);
+        term.RemoveRange(indexOpen, indexClose - indexOpen + 1);
         term.InsertRange(indexOpen, Calculate(BracketTerm));
     }
 
@@ -331,12 +310,13 @@ Element[] Calculate(List<Element> term)
             .Where(x => x.value.GetValue() == "^")
             .Select(x => x.i)
             .FirstOrDefault(-1);
-        if (PowTermInt == -1) break;        
+        if (PowTermInt == -1) break;
         
         Element[] PointTerm = {term[PowTermInt -1], term[PowTermInt], term[PowTermInt + 1]};
         term.RemoveRange(PowTermInt - 1, 3);
         term.InsertRange(PowTermInt - 1, Calculate(PointTerm.ToList()));
     }
+    Console.WriteLine($"Hoch abgearbeitet, Term: {term.Select(x => x.GetValue()).ToArray()}");
 
     while (true)
     {
@@ -376,16 +356,28 @@ class IsOperation()
     {
         int OpenBrackets = 0;
         int CloseBrackets = 0;
+        int Tcounter = 0;
         foreach (Element element in term)
         {
+            Tcounter++;
             if (element.GetDatatype() == "bracket")
             {
-                if (element.GetValue() == "(") OpenBrackets ++;
-                if (element.GetValue() == ")") CloseBrackets ++;
+                if (element.GetValue() == "(")
+                {
+                    Console.WriteLine($"Klammer auf bei Element {element.GetDatatype()}, {element.GetValue()}, counter: {Tcounter}");
+                    OpenBrackets ++;  
+                } 
+                if (element.GetValue() == ")")
+                {
+                    Console.WriteLine($"Klammer zu bei Element {element.GetDatatype()}, {element.GetValue()}, counter: {Tcounter}");
+                    CloseBrackets ++;
+                }
             }
         }
-        if (OpenBrackets - CloseBrackets > 0) throw new Exception($" Es  gibt {OpenBrackets - CloseBrackets} Klammern Auf zu wenig");
-        else if (CloseBrackets - OpenBrackets > 0) throw new Exception($"Es gibt {CloseBrackets - OpenBrackets} Klammern Zu zu wenig");
+        Console.WriteLine($"Klammern Auf: {OpenBrackets}");
+        Console.WriteLine($"Klammer Zu: {CloseBrackets}");
+        if (OpenBrackets - CloseBrackets > 0) throw new Exception($" Es  gibt {OpenBrackets - CloseBrackets} Klammer(n) Auf zu wenig");
+        else if (CloseBrackets - OpenBrackets > 0) throw new Exception($"Es gibt {CloseBrackets - OpenBrackets} Klammer(n) Zu zu wenig");
         return (OpenBrackets, CloseBrackets);
     }
 
